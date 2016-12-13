@@ -1,6 +1,8 @@
 package de.epiceric.shopchest.listeners;
 
 import de.epiceric.shopchest.ShopChest;
+import de.epiceric.shopchest.fastRunnable.UpdateEvent;
+import de.epiceric.shopchest.fastRunnable.UpdateType;
 import de.epiceric.shopchest.shop.Shop;
 import de.epiceric.shopchest.utils.ShopUtils;
 import org.bukkit.Bukkit;
@@ -29,14 +31,18 @@ public class ShopItemListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlayerMove(PlayerMoveEvent e) {
-        if (e.getFrom().getBlockX() == e.getTo().getBlockX()
-                && e.getFrom().getBlockZ() == e.getTo().getBlockZ()
-                && e.getFrom().getBlockY() == e.getTo().getBlockY()) {
-            return;
+    public void onItemUpdate(UpdateEvent event) {
+        if(event.getType().equals(UpdateType.FAST) && plugin.getShopChestConfig().enable_quality_mode){
+            for(Player p : Bukkit.getOnlinePlayers()){
+                updateShopItemVisibility(p, true, false);
+            }
+        }
+        else if(event.getType().equals(UpdateType.SLOW)){
+            for(Player p : Bukkit.getOnlinePlayers()){
+                updateShopItemVisibility(p, true, false);
+            }
         }
 
-        updateShopItemVisibility(e.getPlayer(), true, false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -69,7 +75,7 @@ public class ShopItemListener implements Listener {
     public void onPlayerLeave(PlayerQuitEvent e) {
         for (Shop shop : plugin.getShopUtils().getShops()) {
             if (shop.getItem() != null) {
-                shop.getItem().setVisible(e.getPlayer(), false);
+                shop.getItem().removePlayer(e.getPlayer());
             }
         }
     }
@@ -85,13 +91,19 @@ public class ShopItemListener implements Listener {
 
         for (Shop shop : shopUtils.getShops()) {
             Location shopLocation = shop.getLocation();
-            if (w.equals(shopLocation.getWorld()) && shopLocation.distanceSquared(playerLocation) <= itemDistanceSquared) {
+            if (w.getName().equals(shopLocation.getWorld().getName()) && shopLocation.distanceSquared(playerLocation) <= itemDistanceSquared) {
                 if (shop.getItem() != null) {
-                    if (reset) shop.getItem().resetForPlayer(p);
-                    else shop.getItem().setVisible(p, true);
+                    if (reset) {
+                        shop.getItem().resetForPlayer(p);
+                    }
+                    else {
+                        shop.getItem().setVisible(p, true);
+                    }
                 }
             } else if (hideIfAway) {
-                if (shop.getItem() != null) shop.getItem().setVisible(p, false);
+                if (shop.getItem() != null) {
+                    shop.getItem().setVisible(p, false);
+                }
             }
         }
     }
