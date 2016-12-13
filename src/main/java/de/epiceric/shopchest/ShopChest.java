@@ -5,6 +5,7 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import de.epiceric.shopchest.config.Config;
 import de.epiceric.shopchest.config.Regex;
 import de.epiceric.shopchest.event.ShopReloadEvent;
+import de.epiceric.shopchest.fastRunnable.Updater;
 import de.epiceric.shopchest.language.LanguageUtils;
 import de.epiceric.shopchest.language.LocalizedMessage;
 import de.epiceric.shopchest.listeners.*;
@@ -46,7 +47,7 @@ public class ShopChest extends JavaPlugin {
     private FileWriter fw;
     private WorldGuardPlugin worldGuard;
     private Towny towny;
-
+    private Updater upd;
     /**
      * @return An instance of ShopChest
      */
@@ -317,6 +318,7 @@ public class ShopChest extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new WorldGuardListener(this), this);
 
         initializeShops();
+        upd = new Updater(this);
     }
 
     @Override

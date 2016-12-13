@@ -2,6 +2,7 @@ package de.epiceric.shopchest.shop;
 
 import de.epiceric.shopchest.ShopChest;
 import de.epiceric.shopchest.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -15,7 +16,7 @@ import java.util.Map;
 public class ShopItem {
 
     private ShopChest plugin;
-    private Map<Player, Boolean> visible = new HashMap<>();
+    private Map<String, Boolean> visible = new HashMap();
     private ItemStack itemStack;
     private Location location;
 
@@ -88,8 +89,10 @@ public class ShopItem {
     }
 
     public void remove() {
-        for (Player p : visible.keySet()) {
-            if (isVisible(p)) setVisible(p, false);
+        for (String str : visible.keySet()) {
+            if (isVisible(str)){
+                setVisible(str, false);
+            }
         }
     }
 
@@ -103,13 +106,26 @@ public class ShopItem {
     }
 
     public boolean isVisible(Player p) {
-        return visible.get(p) == null ? false : visible.get(p);
+        return isVisible(p.getName());
     }
-
+    public boolean isVisible(String playername) {
+        Boolean res = visible.get(playername);
+        return res==null?false:res;
+    }
+    public void setVisible(final String p, boolean visible) {
+        this.setVisible(Bukkit.getPlayer(p),visible);
+    }
     public void setVisible(final Player p, boolean visible) {
-        if (isVisible(p) == visible)
+        if(p==null){return;}
+        String playername = p.getName();
+        if (isVisible(playername) == visible){
             return;
+        }
 
+        if(!p.isOnline()){
+            this.visible.remove(playername);
+            return;
+        }
         if (visible) {
             for (Object packet : this.creationPackets) {
                 Utils.sendPacket(plugin, packet, p);
@@ -127,7 +143,10 @@ public class ShopItem {
             }
         }
 
-        this.visible.put(p, visible);
+        this.visible.put(p.getName(), visible);
+    }
+    public void removePlayer(final Player pe) {
+        this.visible.remove(pe.getName());
     }
 
 
